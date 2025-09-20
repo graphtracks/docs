@@ -1,0 +1,995 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GraphTracks Analytics API",
+    "version": "0.1.0",
+    "description": "Bluesky Analytics API for GraphTracks"
+  },
+  "tags": [
+    {
+      "name": "BlueSkyAnalytics",
+      "description": "BlueSky Analytics API. Get growth rate statistics for account and more!"
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://api.graphtracks.com",
+      "description": "Production API"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Development API"
+    },
+    {
+      "url": "/",
+      "description": "Local API"
+    }
+  ],
+  "paths": {
+    "/v1/api/networks/{network}/accounts/{account_id}/stats/{metric}": {
+      "get": {
+        "tags": [
+          "BlueSkyAnalytics"
+        ],
+        "description": "Get growth rate statistics for account. Timeframe, from or to must be provided.",
+        "operationId": "getGlobalStatsForAccount",
+        "security": [
+          {
+            "jwtAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "description": "The network to get stats for. Only BlueSky is supported right now.",
+            "schema": {
+              "$ref": "#/components/schemas/network"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "description": "The account id to get stats for. This is the did of the account for BlueSky.",
+            "schema": {
+              "$ref": "#/components/schemas/account_id"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "path",
+            "required": true,
+            "description": "The metric to get stats for",
+            "schema": {
+              "$ref": "#/components/schemas/metric"
+            }
+          },
+          {
+            "name": "timeframe",
+            "in": "query",
+            "required": false,
+            "description": "The timeframe to get stats for. If to and from are not provided, will return now - Timeframe.",
+            "schema": {
+              "$ref": "#/components/schemas/timeframe"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/from"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "The end date of the timeframe. If not provided, timeframe and from must be provided.",
+            "schema": {
+              "$ref": "#/components/schemas/from"
+            }
+          },
+          {
+            "name": "bucket",
+            "in": "query",
+            "required": false,
+            "description": "bucket size. Interval in seconds between data points. Data points will be aggregated into this bucket size.",
+            "schema": {
+              "type": "integer",
+              "example": 3600,
+              "default": 3600
+            }
+          }
+        ],
+        "summary": "Growth rate statistics for account",
+        "responses": {
+          "200": {
+            "description": "Account growth rate stats. Time series data points for the given metric.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/stats"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/v1/api/networks/account": {
+      "post": {
+        "tags": [
+          "BlueSkyAnalytics"
+        ],
+        "description": "Create a network account for the authenticated user.",
+        "operationId": "createNetworkAccount",
+        "security": [
+          {
+            "apiKeyAuth": []
+          },
+          {
+            "jwtAuth": []
+          }
+        ],
+        "summary": "Create a network account",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "account_handle"
+                ],
+                "properties": {
+                  "account_handle": {
+                    "type": "string",
+                    "description": "The account handle to create (e.g., 'graphtracks.com')",
+                    "example": "graphtracks.com"
+                  },
+                  "network": {
+                    "type": "string",
+                    "description": "The network to create an account for. Only BlueSky is supported right now.",
+                    "enum": [
+                      "BlueSky"
+                    ],
+                    "default": "BlueSky"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created network account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/network_account"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/v1/api/networks/accounts": {
+      "get": {
+        "tags": [
+          "BlueSkyAnalytics"
+        ],
+        "description": "Get all network accounts associated with the authenticated user.",
+        "operationId": "getNetworkAccounts",
+        "security": [
+          {
+            "apiKeyAuth": []
+          },
+          {
+            "jwtAuth": []
+          }
+        ],
+        "summary": "Get network accounts for current user",
+        "responses": {
+          "200": {
+            "description": "List of network accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/network_account"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/v1/api/networks/accounts/{account_id}": {
+      "parameters": [
+        {
+          "name": "account_id",
+          "in": "path",
+          "required": true,
+          "description": "The account id to get or delete. This is the did of the account for BlueSky.",
+          "schema": {
+            "type": "string",
+            "example": "did:plc:z72i7hdynmk6r22z27h6tvur"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "BlueSkyAnalytics"
+        ],
+        "description": "Get details for a specific network account.",
+        "summary": "Get a network account",
+        "operationId": "getNetworkAccount",
+        "security": [
+          {
+            "apiKeyAuth": []
+          },
+          {
+            "jwtAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Network account details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/network_account"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "description": "Account not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "BlueSkyAnalytics"
+        ],
+        "description": "Delete a network account from your GraphTracks account.",
+        "operationId": "deleteNetworkAccount",
+        "summary": "Delete a network account",
+        "security": [
+          {
+            "apiKeyAuth": []
+          },
+          {
+            "jwtAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Network account successfully deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Network account deleted"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/v1/api/networks/{network}/accounts/{account_id}/posts/{post_id}/stats": {
+      "get": {
+        "tags": [
+          "BlueSkyAnalytics"
+        ],
+        "description": "Get time series statistics for a specific post. Requires metric, timeframe, and from parameters.",
+        "operationId": "getPostStats",
+        "security": [
+          {
+            "apiKeyAuth": []
+          },
+          {
+            "jwtAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "description": "The network to get stats for. Only BlueSky is supported right now.",
+            "schema": {
+              "$ref": "#/components/schemas/network"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "description": "The account id that owns the post. This is the did of the account for BlueSky.",
+            "schema": {
+              "$ref": "#/components/schemas/account_id"
+            }
+          },
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "description": "The post id to get stats for",
+            "schema": {
+              "$ref": "#/components/schemas/post_id"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "description": "The metric to get stats for",
+            "schema": {
+              "$ref": "#/components/schemas/metric"
+            }
+          },
+          {
+            "name": "timeframe",
+            "in": "query",
+            "required": true,
+            "description": "The timeframe to get stats for",
+            "schema": {
+              "$ref": "#/components/schemas/timeframe"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "description": "The start date of the timeframe",
+            "schema": {
+              "$ref": "#/components/schemas/from"
+            }
+          },
+          {
+            "name": "bucket",
+            "in": "query",
+            "required": false,
+            "description": "Bucket size. Interval in seconds between data points. Data points will be aggregated into this bucket size.",
+            "schema": {
+              "type": "integer",
+              "example": 3600,
+              "default": 3600
+            }
+          }
+        ],
+        "summary": "Get post statistics",
+        "responses": {
+          "200": {
+            "description": "Post statistics time series data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/stats"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/v1/api/networks/{network}/accounts/{account_id}/top-posts": {
+      "get": {
+        "tags": [
+          "BlueSkyAnalytics"
+        ],
+        "description": "Get the top performing posts for an account within a specified timeframe.",
+        "operationId": "getTopPostsForAccount",
+        "security": [
+          {
+            "apiKeyAuth": []
+          },
+          {
+            "jwtAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "description": "The network to get stats for. Only BlueSky is supported right now.",
+            "schema": {
+              "$ref": "#/components/schemas/network"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "description": "The account id to get top posts for. This is the did of the account for BlueSky.",
+            "schema": {
+              "$ref": "#/components/schemas/account_id"
+            }
+          },
+          {
+            "name": "timeframe",
+            "in": "query",
+            "required": false,
+            "description": "The timeframe to analyze for top posts",
+            "schema": {
+              "$ref": "#/components/schemas/timeframe"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of top posts to return",
+            "schema": {
+              "type": "integer",
+              "example": 10,
+              "default": 10
+            }
+          }
+        ],
+        "summary": "Get top posts for an account",
+        "responses": {
+          "200": {
+            "description": "List of top posts with their engagement metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/posts"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/v1/api/networks/{network}/accounts/{account_id}/posts/{post_id}/interactions/{metric}": {
+      "get": {
+        "tags": [
+          "BlueSkyAnalytics"
+        ],
+        "description": "Get detailed interaction data for a specific post, including user profiles who interacted.",
+        "operationId": "getPostInteractions",
+        "security": [
+          {
+            "apiKeyAuth": []
+          },
+          {
+            "jwtAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "description": "The network to get stats for. Only BlueSky is supported right now.",
+            "schema": {
+              "$ref": "#/components/schemas/network"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "description": "The account id that owns the post. This is the did of the account for BlueSky.",
+            "schema": {
+              "$ref": "#/components/schemas/account_id"
+            }
+          },
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "description": "The post id to get interactions for",
+            "schema": {
+              "$ref": "#/components/schemas/post_id"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "path",
+            "required": true,
+            "description": "The type of interaction to retrieve",
+            "schema": {
+              "$ref": "#/components/schemas/metric"
+            }
+          },
+          {
+            "name": "timeframe",
+            "in": "query",
+            "required": true,
+            "description": "The timeframe to get interactions for",
+            "schema": {
+              "$ref": "#/components/schemas/timeframe"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "description": "The start date of the timeframe",
+            "schema": {
+              "$ref": "#/components/schemas/from"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "The end date of the timeframe",
+            "schema": {
+              "$ref": "#/components/schemas/from"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of interactions to return",
+            "schema": {
+              "type": "integer",
+              "example": 10,
+              "default": 10
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "description": "Offset for pagination",
+            "schema": {
+              "type": "integer",
+              "example": 0
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "Sort order for interactions",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          }
+        ],
+        "summary": "Get post interactions",
+        "responses": {
+          "200": {
+            "description": "List of interactions with user profiles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/interactions"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "400": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "string",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "enum": [
+                    "Unauthorized"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - API Key valid but not authorized for this resource",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "string",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "enum": [
+                    "Internal server error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "default": {
+        "description": "Unhandled error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "data_point": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp for this data point. UTC timezone."
+          },
+          "value": {
+            "type": "number",
+            "description": "The numeric value for this data point."
+          }
+        },
+        "required": [
+          "time",
+          "value"
+        ]
+      },
+      "stats": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/data_point"
+        }
+      },
+      "metric": {
+        "type": "string",
+        "description": "The metric to get stats for",
+        "enum": [
+          "followers",
+          "likes",
+          "replies",
+          "reposts",
+          "engagement"
+        ]
+      },
+      "timeframe": {
+        "type": "string",
+        "description": "The timeframe to get stats for",
+        "enum": [
+          "1h",
+          "1d",
+          "7d",
+          "30d",
+          "90d",
+          "all"
+        ]
+      },
+      "account_id": {
+        "type": "string",
+        "description": "The account did"
+      },
+      "from": {
+        "type": "string",
+        "description": "The start date of the timeframe. Expects a datetime of the post. UTC timezone.",
+        "format": "date-time"
+      },
+      "network": {
+        "type": "string",
+        "description": "The network to get stats for. Currently only BlueSky is supported.",
+        "enum": [
+          "BlueSky"
+        ]
+      },
+      "network_account": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "account_id",
+          "account_handle",
+          "account_internal_id",
+          "active",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "The account id (did for BlueSky)",
+            "example": "did:plc:z72i7hdynmk6r22z27h6tvur"
+          },
+          "account_handle": {
+            "type": "string",
+            "description": "The account handle",
+            "example": "graphtracks.com"
+          },
+          "account_internal_id": {
+            "type": "number",
+            "description": "The internal id used by GraphTracks"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Whether the account is active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp for when the account was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp for when the account was last updated"
+          },
+          "network": {
+            "type": "string",
+            "description": "The network this account belongs to",
+            "enum": [
+              "BlueSky"
+            ]
+          }
+        }
+      },
+      "post_id": {
+        "type": "string",
+        "description": "The post identifier",
+        "example": "3k4duaz5vfs2b"
+      },
+      "post": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "post_id": {
+            "type": "string",
+            "description": "The post identifier",
+            "example": "3k4duaz5vfs2b"
+          }
+        }
+      },
+      "postData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "likes": {
+            "type": "number",
+            "description": "The number of likes on the post"
+          },
+          "reposts": {
+            "type": "number",
+            "description": "The number of reposts"
+          },
+          "replies": {
+            "type": "number",
+            "description": "The number of replies"
+          },
+          "engagement": {
+            "type": "number",
+            "description": "The total engagement metric"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional post details"
+          },
+          "indexedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp for when the post was indexed"
+          }
+        }
+      },
+      "posts": {
+        "type": "array",
+        "items": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/post"
+            },
+            {
+              "$ref": "#/components/schemas/postData"
+            }
+          ]
+        }
+      },
+      "interaction": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp for this interaction. UTC timezone."
+          },
+          "id": {
+            "type": "string",
+            "description": "The user id who performed the interaction"
+          },
+          "profile": {
+            "type": "object",
+            "description": "The user profile information"
+          }
+        },
+        "required": [
+          "time",
+          "id"
+        ]
+      },
+      "interactions": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/interaction"
+        }
+      }
+    },
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API Key for authenticating requests to API-tagged endpoints."
+      }
+    }
+  },
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ]
+}
